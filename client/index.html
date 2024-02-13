@@ -1,27 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Hello</title>
-</head>
-<body>
-  <script>
-    const ws = new WebSocket('ws://localhost:8080');
-
-    ws.onopen = function() {
-      console.log('Connected to WebSocket server');
-      // Send a message to the server 
-      setInterval(() => {
-         ws.send('Hello, server!');
-      }, 1000)
-    };
-
-    ws.onmessage = function(event) {
-      console.log('Received message from server:', event.data);
-    };
-
-    ws.onclose = function() {
-      console.log('Disconnected from WebSocket server');
-    };
-  </script>
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
