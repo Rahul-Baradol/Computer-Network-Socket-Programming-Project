@@ -9,7 +9,7 @@
 
     ws.onopen = function() {
       console.log('Connected to WebSocket server');
-      // Send a message to the server
+      // Send a message to the server 
       setInterval(() => {
          ws.send('Hello, server!');
       }, 1000)
