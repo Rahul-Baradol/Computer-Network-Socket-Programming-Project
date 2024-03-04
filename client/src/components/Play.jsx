@@ -7,6 +7,7 @@ function Play(props) {
    const [grid, setGrid] = useState([["", "", ""], ["", "", ""], ["", "", ""]])
    const [flag, setFlag] = useState(0);
    const [message, setMessage] = useState("");
+
    const navigate = useNavigate();
 
    useEffect(() => {
@@ -14,7 +15,8 @@ function Play(props) {
          let data = JSON.parse(event.data);
          console.log(data);
 
-         if (data.type !== "move") {
+         if (data.type === "exit") {
+            navigate("/room");
             return;
          }
 
@@ -26,7 +28,12 @@ function Play(props) {
             setTurn(turn === "X" ? "O" : "X")
             if (data.winner !== "?") {
                setFlag(1);
-               setMessage(`${data.winner} is winner!`)
+
+               if (data.winner === "=") {
+                  setMessage("It is tie!")
+               } else {
+                  setMessage(`${data.winner} is winner!`)
+               }
             }
          }
       }
@@ -43,7 +50,7 @@ function Play(props) {
                <div>{message}</div>
             </div>
 
-            <div className='grid grid-cols-3 grid-rows-3 w-[20vw] h-[40vh]'>
+            <div className='grid grid-cols-3 grid-rows-3 w-[40vw] h-[40vh]'>
                <Cell flag={flag} displayValue={grid[0][0]} setGrid={setGrid} setTurn={setTurn} roomId={props.roomId} socket={props.socket} identity={props.identity} x={0} y={0} />
                <Cell flag={flag} displayValue={grid[0][1]} setGrid={setGrid} setTurn={setTurn} roomId={props.roomId} socket={props.socket} identity={props.identity} x={0} y={1} />
                <Cell flag={flag} displayValue={grid[0][2]} setGrid={setGrid} setTurn={setTurn} roomId={props.roomId} socket={props.socket} identity={props.identity} x={0} y={2} />
@@ -57,28 +64,28 @@ function Play(props) {
                <Cell flag={flag} displayValue={grid[2][2]} setGrid={setGrid} setTurn={setTurn} roomId={props.roomId} socket={props.socket} identity={props.identity} x={2} y={2} />
             </div>
 
-            <button disabled={!flag} className={`btn btn-secondary w-[30vw]`} onClick={async () => {
+            {/* <button disabled={!flag} className={`btn btn-secondary w-[30vw]`} onClick={async () => {
                props.socket.send(JSON.stringify({
                   type: "reset",
-                  roomId: props.roomId
+                  roomId: props.roomId,
+                  identity
                }))
 
                setGrid([["", "", ""], ["", "", ""], ["", "", ""]])
                setFlag(0)
                setMessage("")
                setTurn("X")
-            }}>Reset</button>
+
+            }}>
+               Play again
+               <span className=''></span>
+            </button> */}
 
             <button className={`btn btn-secondary w-[30vw]`} onClick={async () => {
                props.socket.send(JSON.stringify({
-                  type: "reset",
+                  type: "exit",
                   roomId: props.roomId
                }))
-
-               setGrid([["", "", ""], ["", "", ""], ["", "", ""]])
-               setFlag(0)
-               setMessage("")
-               setTurn("X")
 
                navigate("/room")
             }}>Exit Room</button>
@@ -87,4 +94,4 @@ function Play(props) {
    )
 }
 
-export default Play
+export default Play;

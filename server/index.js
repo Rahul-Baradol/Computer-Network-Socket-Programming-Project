@@ -16,6 +16,7 @@ let roomGrid = new Map();
 let roomId_Names = new Map();
 let roomId_WS = new Map();
 let roomId_Turn = new Map();
+let roomId_PlayAgain = new Map();
 
 function XorO() {
    const randomNumber = Math.random();
@@ -31,6 +32,7 @@ function determineWinner(grid) {
       return grid[0][2];
    }
 
+   let nullExists = false;
    for (let i = 0; i <= 2; i++) {
       if (grid[i][0] !== null && grid[i][0] === grid[i][1] && grid[i][1] === grid[i][2]) {
          return grid[i][0];
@@ -39,6 +41,14 @@ function determineWinner(grid) {
       if (grid[0][i] !== null && grid[0][i] === grid[1][i] && grid[1][i] === grid[2][i]) {
          return grid[0][i];
       }
+
+      if (grid[i][0] === null || grid[i][1] === null || grid[i][2] === null) {
+         nullExists = true;
+      }
+   }
+
+   if (!nullExists) {
+      return "=";
    }
 
    return "?";
@@ -164,8 +174,21 @@ function move(ws, data) {
 }
 
 function reset(roomId) {
+   let mask = roomId_PlayAgain.get(roomId);
+
    roomGrid.set(roomId, [[null, null, null], [null, null, null], [null, null, null]])
    roomId_Turn.set(roomId, "X");
+}
+
+function exitRoom(roomId) {
+   let clients = roomId_WS.get(roomId);
+   for (let client of clients) {
+      if (client.readyState === ws.OPEN) {
+         client.send(JSON.stringify({
+            type: "exit"
+         }))
+      }
+   }
 }
 
 app.ws('/', (ws, req) => {
@@ -188,8 +211,13 @@ app.ws('/', (ws, req) => {
          return;
       }
 
-      if (data.type === "reset") {
-         reset(data.roomId);
+      if (data.type === "playagain") {
+         playagain(data.roomId);
+         return;
+      }
+
+      if (data.type === "exit") {
+         exitRoom(data.roomId);
          return;
       }
    });
