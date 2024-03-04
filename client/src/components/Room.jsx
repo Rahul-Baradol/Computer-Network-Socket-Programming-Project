@@ -29,6 +29,7 @@ function Room(props) {
                      if (data.status === "added") {
                         props.setRoomId(data.roomId);
                         props.setOtherPlayer(data.otherPlayerName);
+                        props.setIdentity(data.whoyouare);
                         navigate("/play");
                         return;
                      }

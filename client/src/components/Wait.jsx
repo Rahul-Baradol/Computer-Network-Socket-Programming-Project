@@ -14,6 +14,7 @@ function Wait(props) {
       }
 
       props.setOtherPlayer(data.playerName);
+      props.setIdentity(data.whoyouare);
       navigate("/play");
     }
   }, [])

@@ -15,6 +15,34 @@ let rooms = []
 let roomGrid = new Map();
 let roomId_Names = new Map();
 let roomId_WS = new Map();
+let roomId_Turn = new Map();
+
+function XorO() {
+   const randomNumber = Math.random();
+   return randomNumber < 0.5 ? 1 : 0;
+}
+
+function determineWinner(grid) {
+   if (grid[0][0] !== null && grid[0][0] === grid[1][1] && grid[1][1] === grid[2][2]) {
+      return grid[0][0];
+   }
+   
+   if (grid[0][2] !== null && grid[0][2] === grid[1][1] && grid[1][1] === grid[2][0]) {
+      return grid[0][2];
+   }
+
+   for (let i = 0; i <= 2; i++) {
+      if (grid[i][0] !== null && grid[i][0] === grid[i][1] && grid[i][1] === grid[i][2]) {
+         return grid[i][0];
+      }
+
+      if (grid[0][i] !== null && grid[0][i] === grid[1][i] && grid[1][i] === grid[2][i]) {
+         return grid[0][i];
+      }
+   }
+
+   return "?";
+}
 
 function join(ws, playerName, roomId) {
    if (!rooms.includes(roomId)) {
@@ -35,14 +63,18 @@ function join(ws, playerName, roomId) {
       return;
    }
 
+   const xo = XorO();
+
    arr.push(playerName);
 
    roomId_Names.set(roomId, arr);
+   roomId_Turn.set(roomId, "X");
 
    let tmparr = roomId_WS.get(roomId);
    tmparr[0].send(JSON.stringify({
       type: "otherplayer",
-      playerName: playerName
+      playerName: playerName,
+      whoyouare: xo ? "X" : "O"
    }))
 
    tmparr.push(ws);
@@ -51,7 +83,9 @@ function join(ws, playerName, roomId) {
    ws.send(JSON.stringify({
       type: "join",
       status: "added",
-      otherPlayerName: arr[0]
+      otherPlayerName: arr[0],
+      whoyouare: xo ? "O" : "X",
+      roomId: roomId
    }));
 }
 
@@ -68,8 +102,6 @@ function create(ws, playerName) {
    rooms.push(roomId);
    roomGrid[roomId] = [[null, null, null], [null, null, null], [null, null, null]]
 
-   console.log(playerName);
-
    let arr = [];
    arr.push(playerName);
 
@@ -79,13 +111,61 @@ function create(ws, playerName) {
    tmparr.push(ws)
 
    roomId_WS.set(roomId, tmparr);
-   
-   console.log(roomId_WS);
 
    ws.send(JSON.stringify({
       type: "create",
       roomId: roomId
    }));
+}
+
+function move(ws, data) {
+   let x = data.x;
+   let y = data.y;
+   let whoyouare = data.whoyouare;
+   let roomId = data.roomId;
+
+   let currentTurn = roomId_Turn.get(roomId);
+   console.log(roomId);
+   console.log(currentTurn, whoyouare);
+   if (currentTurn !== whoyouare) {
+      ws.send(JSON.stringify({
+         type: "move",
+         status: "rejected"
+      }))
+      return;
+   }
+
+   let grid = roomGrid[roomId];
+   console.log(grid);
+   if (grid[x][y] !== null) {
+      ws.send(JSON.stringify({
+         type: "move",
+         status: "rejected"
+      }))
+      return;
+   }
+
+   grid[x][y] = whoyouare;
+   roomGrid.set(roomId, grid);
+   roomId_Turn.set(roomId, whoyouare === "X" ? "O" : "X");
+
+   let roomWS = roomId_WS.get(roomId);
+
+   for (let ws of roomWS) {
+      ws.send(JSON.stringify({
+         type: "move",
+         status: "accept",
+         value: whoyouare,
+         x: x,
+         y: y,
+         winner: determineWinner(grid)
+      }))
+   }
+}
+
+function reset(roomId) {
+   roomGrid.set(roomId, [[null, null, null], [null, null, null], [null, null, null]])
+   roomId_Turn.set(roomId, "X");
 }
 
 app.ws('/', (ws, req) => {
@@ -100,6 +180,17 @@ app.ws('/', (ws, req) => {
 
       if (data.type === "create") {
          create(ws, data.playerName);
+         return;
+      }
+
+      if (data.type === "move") {
+         move(ws, data)
+         return;
+      }
+
+      if (data.type === "reset") {
+         reset(data.roomId);
+         return;
       }
    });
 
