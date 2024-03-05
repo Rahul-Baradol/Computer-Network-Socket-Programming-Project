@@ -38,7 +38,11 @@ function Cell(props) {
                   y: `${props.y}`,
                }))
             }
-         }} className={`w-auto h-auto border-blue-400 border-2 ${border(props.x, props.y)}`}>{props.displayValue}</div>
+         }} className={`w-auto h-auto flex justify-center items-center border-blue-400 border-2 ${border(props.x, props.y)}`}>
+            {props.displayValue !== "" && <span className='text-2xl animateOnClick'>
+               {props.displayValue}
+            </span>}
+         </div>
       </>
    )
 }

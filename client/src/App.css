@@ -11,3 +11,22 @@
    font-weight: 400;
    font-style: normal;
 }
+
+.animateOnClick {
+   font-size: 1.5rem;
+   /* animation: bubble 0.6s ease-out 1; */
+}
+
+@keyframes bubble {
+   0% {
+      font-size: 1.5rem;
+   }
+
+   50% {
+      font-size: 1.2rem;
+   }
+
+   100% {
+      font-size: 1.5rem;
+   }
+}
