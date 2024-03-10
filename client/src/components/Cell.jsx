@@ -1,9 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 
 function Cell(props) {
-   const [value, setValue] = useState("");
-
-
    function border(x, y) {
       let classes = "";
 
@@ -39,7 +36,7 @@ function Cell(props) {
                }))
             }
          }} className={`w-auto h-auto flex justify-center items-center border-blue-400 border-2 ${border(props.x, props.y)}`}>
-            {props.displayValue !== "" && <span className='text-2xl animateOnClick'>
+            {props.displayValue !== "" && <span className='text-2xl'>
                {props.displayValue}
             </span>}
          </div>
