@@ -49,7 +49,7 @@ export default defineConfig({
       key, // Pass the key directly
       cert, // Pass the cert directly
     },
-    port: 5173,
+    port: 443,
   },
 })
 

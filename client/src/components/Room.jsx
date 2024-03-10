@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 
 function Room(props) {
    const navigate = useNavigate();
+   const [message, setMessage] = useState("");
 
    return (
       <>
@@ -33,8 +34,13 @@ function Room(props) {
                         navigate("/play");
                         return;
                      }
-
-                     alert(data.status)
+                     
+                     if (data.status === "full") {
+                        setMessage("Room is full")
+                     } else {
+                        setMessage("Room does not exist")
+                     }
+                     document.getElementById("matchResult").showModal();   
                   }
                }}>Join Room</button>
             </div>
@@ -58,6 +64,18 @@ function Room(props) {
                   }
                }}>Create Room</button>
             </div>
+
+            <dialog id="matchResult" className="modal">
+               <div className="modal-box">
+                  <h3 className="font-bold text-lg">Message</h3>
+                  <p className="py-4">{message}</p>
+                  <div className="modal-action">
+                     <form method="dialog">
+                     <button className="btn">Close</button>
+                     </form>
+                  </div>
+               </div>
+            </dialog>
          </div>
       </>
    )
