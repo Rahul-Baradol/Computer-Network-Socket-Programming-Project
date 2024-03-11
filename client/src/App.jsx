@@ -12,7 +12,7 @@ function App() {
   const [roomId, setRoomId] = useState("");
   const [socket, setSocket] = useState(null);
   const [identity, setIdentity] = useState("");
- 
+
   useEffect(() => {
     if (!socket) {
       setSocket(new WebSocket("ws://localhost:3000/"))
@@ -39,7 +39,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Player player={player} setPlayer={setPlayer} />} />
-            <Route path="/room" element={<Room setIdentity={setIdentity}setOtherPlayer ={setOtherPlayer} socket={socket} player={player} roomId={roomId} setRoomId={setRoomId} />} />
+            <Route path="/room" element={<Room setIdentity={setIdentity} setOtherPlayer={setOtherPlayer} socket={socket} player={player} roomId={roomId} setRoomId={setRoomId} />} />
             <Route path="/play" element={<Play roomId={roomId} socket={socket} identity={identity} player={player} otherPlayer={otherPlayer} />} />
             <Route path="/wait" element={<Wait setIdentity={setIdentity} socket={socket} setOtherPlayer={setOtherPlayer} roomId={roomId} />} />
           </Routes>

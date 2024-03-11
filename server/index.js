@@ -53,6 +53,16 @@ function determineWinner(grid) {
    return "?";
 }
 
+function checkClientStatus(roomId) {
+   let clients = roomId_WS.get(roomId);
+   
+   for (let client of clients) {
+      if (client.readyState === ws.CLOSED) {
+         exitRoom(roomId);
+      }
+   }
+}
+
 function join(ws, playerName, roomId) {
    if (!rooms.includes(roomId)) {
       ws.send(JSON.stringify({
@@ -198,6 +208,12 @@ app.ws('/', (ws, req) => {
 
    ws.on('message', (message) => {
       let data = JSON.parse(message);
+
+      if (data.type === "alive") {
+         checkClientStatus(data.roomId);
+         return;
+      }
+
       if (data.type === "join") {
          join(ws, data.playerName, data.roomId);
          return;
@@ -226,4 +242,9 @@ app.ws('/', (ws, req) => {
 
 app.listen(3000, () => {
    console.log('Server listening on port 3000');
+   setInterval(() => {
+      for (let room of rooms) {
+         checkClientStatus(room)
+      }
+   }, 1000)
 });

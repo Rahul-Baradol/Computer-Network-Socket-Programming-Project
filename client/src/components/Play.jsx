@@ -11,30 +11,38 @@ function Play(props) {
    const navigate = useNavigate();
 
    useEffect(() => {
-      props.socket.onmessage = (event) => {
-         let data = JSON.parse(event.data);
-         console.log(data);
+      if (!props.socket) {
+         navigate("/")
+      }
+   }, [])
 
-         if (data.type === "exit") {
-            navigate("/room");
-            return;
-         }
-
-         let status = data.status;
-         if (status === "accept") {
-            let g = grid;
-            g[data.x][data.y] = data.value;
-            setGrid(g);
-            setTurn(turn === "X" ? "O" : "X")
-            if (data.winner !== "?") {
-               setFlag(1);
-
-               if (data.winner === "=") {
-                  setMessage("It is tie!")
-                  document.getElementById("matchResult").showModal();
-               } else {
-                  setMessage(`${data.winner} is winner!`)
-                  document.getElementById("matchResult").showModal();
+   useEffect(() => {
+      if (props.socket) {
+         props.socket.onmessage = (event) => {
+            let data = JSON.parse(event.data);
+            console.log(data);
+   
+            if (data.type === "exit") {
+               navigate(`/room?exitedRoom=true`);
+               return;
+            }
+   
+            let status = data.status;
+            if (status === "accept") {
+               let g = grid;
+               g[data.x][data.y] = data.value;
+               setGrid(g);
+               setTurn(turn === "X" ? "O" : "X")
+               if (data.winner !== "?") {
+                  setFlag(1);
+   
+                  if (data.winner === "=") {
+                     setMessage("It is tie!")
+                     document.getElementById("matchResult").showModal();
+                  } else {
+                     setMessage(`${data.winner} is winner!`)
+                     document.getElementById("matchResult").showModal();
+                  }
                }
             }
          }

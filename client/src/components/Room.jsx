@@ -1,9 +1,22 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 function Room(props) {
    const navigate = useNavigate();
    const [message, setMessage] = useState("");
+   const [searchParams, setSearchParams] = useSearchParams();
+
+   useEffect(() => {
+      if (!props.socket) {
+         navigate("/");
+      }
+
+      let exitedRoom = searchParams.get("exitedRoom")
+      if (exitedRoom) {
+         setMessage("Other player exited room.")
+         document.getElementById("matchResult").showModal();
+      }
+   }, [])
 
    return (
       <>
@@ -22,7 +35,7 @@ function Room(props) {
 
                   props.socket.onmessage = (event) => {
                      let data = JSON.parse(event.data);
-                     
+
                      if (data.type !== "join") {
                         return;
                      }
@@ -34,13 +47,13 @@ function Room(props) {
                         navigate("/play");
                         return;
                      }
-                     
+
                      if (data.status === "full") {
                         setMessage("Room is full")
                      } else {
                         setMessage("Room does not exist")
                      }
-                     document.getElementById("matchResult").showModal();   
+                     document.getElementById("matchResult").showModal();
                   }
                }}>Join Room</button>
             </div>
@@ -53,7 +66,7 @@ function Room(props) {
                      type: "create",
                      playerName: props.player
                   }))
-                  
+
                   props.socket.onmessage = (event) => {
                      let data = JSON.parse(event.data);
 
@@ -67,11 +80,11 @@ function Room(props) {
 
             <dialog id="matchResult" className="modal">
                <div className="modal-box">
-                  <h3 className="font-bold text-lg">Message</h3>
+                  <h3 className="font-bold text-lg">Match Result</h3>
                   <p className="py-4">{message}</p>
                   <div className="modal-action">
                      <form method="dialog">
-                     <button className="btn">Close</button>
+                        <button className="btn">Close</button>
                      </form>
                   </div>
                </div>
