@@ -6,6 +6,7 @@ function Room(props) {
    const [message, setMessage] = useState("");
    const [searchParams, setSearchParams] = useSearchParams();
 
+   // show the modal on the query parameter
    useEffect(() => {
       if (!props.socket) {
          navigate("/");

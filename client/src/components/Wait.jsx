@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 function Wait(props) {
   const navigate = useNavigate();
 
+  // add event listener to the web socket
   useEffect(() => {
     props.socket.onmessage = (event) => {
       let data = JSON.parse(event.data);

@@ -17,11 +17,13 @@ let roomId_Names = new Map();
 let roomId_WS = new Map();
 let roomId_Turn = new Map();
 
+// function to determine if the player is X or O
 function XorO() {
    const randomNumber = Math.random();
    return randomNumber < 0.5 ? 1 : 0;
 }
 
+// function to determine the winner of the game of tic tac toe
 function determineWinner(grid) {
    if (grid[0][0] !== null && grid[0][0] === grid[1][1] && grid[1][1] === grid[2][2]) {
       return grid[0][0];
@@ -53,8 +55,10 @@ function determineWinner(grid) {
    return "?";
 }
 
+// kicks the clients out of the room if one of the players is disconnected
 function checkClientStatus(roomId) {
    let clients = roomId_WS.get(roomId);
+   if (!clients) return;
    
    for (let client of clients) {
       if (client.readyState === ws.CLOSED) {
@@ -63,7 +67,9 @@ function checkClientStatus(roomId) {
    }
 }
 
+// when a client sends a join room message
 function join(ws, playerName, roomId) {
+   // if the roomId does not exist, send the message to the client that you cannot join the room
    if (!rooms.includes(roomId)) {
       ws.send(JSON.stringify({
          type: "join",
@@ -74,6 +80,7 @@ function join(ws, playerName, roomId) {
 
    let arr = roomId_Names.get(roomId);
 
+   // more than 2 players cannot join the same room
    if (arr.length >= 2) {
       ws.send(JSON.stringify({
          type: "join",
@@ -90,6 +97,8 @@ function join(ws, playerName, roomId) {
    roomId_Turn.set(roomId, "X");
 
    let tmparr = roomId_WS.get(roomId);
+
+   // send the details of the current player to the other player
    tmparr[0].send(JSON.stringify({
       type: "otherplayer",
       playerName: playerName,
@@ -99,6 +108,7 @@ function join(ws, playerName, roomId) {
    tmparr.push(ws);
    roomId_WS.set(roomId, tmparr);
 
+   // send the join acknowledgement to the current player
    ws.send(JSON.stringify({
       type: "join",
       status: "added",
@@ -108,6 +118,7 @@ function join(ws, playerName, roomId) {
    }));
 }
 
+// when a client sends a create room message
 function create(ws, playerName) {
    function random5Digit() {
       return Math.floor(Math.random() * 100000).toString().padStart(5, '0');
@@ -137,6 +148,7 @@ function create(ws, playerName) {
    }));
 }
 
+// when a client sends a move message i.e when the player makes a move of X or O
 function move(ws, data) {
    let x = data.x;
    let y = data.y;
@@ -182,6 +194,7 @@ function move(ws, data) {
    }
 }
 
+// kicks the clients out of the room and deletes the room
 function exitRoom(roomId) {
    let clients = roomId_WS.get(roomId);
    for (let client of clients) {
@@ -192,6 +205,7 @@ function exitRoom(roomId) {
       }
    }
 
+   // clear the map with key roomId
    roomGrid.delete(roomId);
    roomId_Names.delete(roomId);
    roomId_WS.delete(roomId);
@@ -203,43 +217,53 @@ function exitRoom(roomId) {
    }
 }
 
+// websocket listening on / path
 app.ws('/', (ws, req) => {
    console.log('Client connected to WebSocket :)');
 
+   // When the client sends a message
    ws.on('message', (message) => {
+      // Parse the message
       let data = JSON.parse(message);
 
+      // for all existing rooms, check if the players are still connected and if one player is disconnected, kick the other player out of the room
       if (data.type === "alive") {
          checkClientStatus(data.roomId);
          return;
       }
 
+      // if the message is a join message
       if (data.type === "join") {
          join(ws, data.playerName, data.roomId);
          return;
       }
 
+      // if the message is a create room message
       if (data.type === "create") {
          create(ws, data.playerName);
          return;
       }
 
+      // if the message is a move message
       if (data.type === "move") {
          move(ws, data)
          return;
       }
 
+      // if the message is an exit message
       if (data.type === "exit") {
          exitRoom(data.roomId);
          return;
       }
    });
 
+   // When the client closes the connection
    ws.on('close', () => {
       console.log('Client disconnected :(');
    });
 });
 
+// Start the server
 app.listen(3000, () => {
    console.log('Server listening on port 3000');
    setInterval(() => {

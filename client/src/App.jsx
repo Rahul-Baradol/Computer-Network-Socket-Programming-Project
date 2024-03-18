@@ -13,12 +13,14 @@ function App() {
   const [socket, setSocket] = useState(null);
   const [identity, setIdentity] = useState("");
 
+  // initialize the web socket on component render
   useEffect(() => {
     if (!socket) {
       setSocket(new WebSocket("ws://localhost:3000/"))
     }
   }, [])
 
+  // add event listeners to the web socket
   useEffect(() => {
     if (socket) {
       socket.addEventListener("open", () => {
