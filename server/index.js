@@ -21,7 +21,6 @@ let roomId_WS = new Map();
 let roomId_Turn = new Map();
 
 // function to determine if the player is X or O
-// returns 1 for X and 0 for O
 function XorO() {
    const randomNumber = Math.random();
    return randomNumber < 0.5 ? 1 : 0;
@@ -62,7 +61,7 @@ function determineWinner(grid) {
    return "?";
 }
 
-// kicks the clients out of the room if one of the players is disconnected
+// kicks the clients out of a room if one of the players of the room are disconnected
 function checkClientStatus(roomId) {
    let clients = roomId_WS.get(roomId);
    if (!clients) return;
@@ -76,7 +75,7 @@ function checkClientStatus(roomId) {
 
 // when a client sends a join room message
 function join(ws, playerName, roomId) {
-   // if the roomId does not exist, send the message to the client that you cannot join the room
+   // if the roomId does not exist, send the message to the client that there is no such room
    if (!rooms.includes(roomId)) {
       ws.send(JSON.stringify({
          type: "join",
@@ -106,7 +105,7 @@ function join(ws, playerName, roomId) {
 
    let tmparr = roomId_WS.get(roomId);
 
-   // send the details of the current player to the other player
+   // send the details of the current player to the other player of the same room
    tmparr[0].send(JSON.stringify({
       type: "otherplayer",
       playerName: playerName,
@@ -116,7 +115,7 @@ function join(ws, playerName, roomId) {
    tmparr.push(ws);
    roomId_WS.set(roomId, tmparr);
 
-   // send the added message to the current player
+   // send the "added" message to the current player to let the player know that he/she is added to the room
    ws.send(JSON.stringify({
       type: "join",
       status: "added",
@@ -152,7 +151,7 @@ function create(ws, playerName) {
 
    roomId_WS.set(roomId, tmparr);
 
-   // send the create acknowledgement to the current player with the roomId
+   // send the acknowledgement of "create" request to the current player with the roomId
    ws.send(JSON.stringify({
       type: "create",
       roomId: roomId
@@ -196,7 +195,7 @@ function move(ws, data) {
    let roomWS = roomId_WS.get(roomId);
 
    for (let ws of roomWS) {
-      // send the move details to the other player
+      // send the move details to the players
       ws.send(JSON.stringify({
          type: "move",
          status: "accept",
@@ -208,7 +207,7 @@ function move(ws, data) {
    }
 }
 
-// kicks the clients out of the room and deletes the room
+// kicks the clients out of the given room and deletes the room
 function exitRoom(roomId) {
    let clients = roomId_WS.get(roomId);
    for (let client of clients) {
@@ -233,7 +232,6 @@ function exitRoom(roomId) {
    }
 }
 
-// websocket listening on path /
 app.ws('/', (ws, req) => {
    console.log('Client connected to WebSocket :)');
 
@@ -241,12 +239,6 @@ app.ws('/', (ws, req) => {
    ws.on('message', (message) => {
       // Parse the message
       let data = JSON.parse(message);
-
-      // for all existing rooms, check if the players are still connected and if one player of a room is disconnected, kick the other player out of the same room
-      if (data.type === "alive") {
-         checkClientStatus(data.roomId);
-         return;
-      }
 
       // if the message is a join message
       if (data.type === "join") {

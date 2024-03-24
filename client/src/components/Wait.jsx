@@ -6,11 +6,11 @@ function Wait(props) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // perform an action for the response from the server via a event listener
+    // on receiving a message from the server via socket, perform the following action
     props.socket.onmessage = (event) => {
       let data = JSON.parse(event.data);
 
-      // if the response is not otherplayer response, return
+      // if the response is not otherplayer response, return from the function
       if (data.type !== "otherplayer") {
         return;
       }

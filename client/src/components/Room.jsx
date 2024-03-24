@@ -39,11 +39,11 @@ function Room(props) {
                      roomId: props.roomId
                   }))
                   
-                  // perform an action for the response from the server via a event listener
+                  // on receiving a message from the server via socket, perform the following action
                   props.socket.onmessage = (event) => {
                      let data = JSON.parse(event.data);
 
-                     // if the response is not a join response, return
+                     // if the response is not a join response, return from the function
                      if (data.type !== "join") {
                         return;
                      }
@@ -81,11 +81,11 @@ function Room(props) {
                      playerName: props.player
                   }))
                   
-                  // perform an action for the response from the server via a event listener
+                  // on receiving a message from the server via socket, perform the following action
                   props.socket.onmessage = (event) => {
                      let data = JSON.parse(event.data);
                      
-                     // if the response is a create response, and the roomId is present, set the roomId and navigate to the /wait route 
+                     // if the response is a create response, set the roomId and navigate to the /wait route 
                      if (data.type === "create" && data.roomId) {
                         props.setRoomId(data.roomId);
                         navigate("/wait")

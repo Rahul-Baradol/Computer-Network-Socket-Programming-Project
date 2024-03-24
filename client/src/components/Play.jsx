@@ -30,7 +30,7 @@ function Play(props) {
 
    useEffect(() => {
       if (props.socket) {
-         // perform an action for the message from the server via a event listener
+         // on receiving a message from the server via socket, perform the following action
          props.socket.onmessage = (event) => {
             let data = JSON.parse(event.data);
             console.log(data);
@@ -43,7 +43,8 @@ function Play(props) {
 
             let status = data.status;
 
-            // if status message from the response is accept, then update the grid and turn
+            // if status message from the response is "accept", it means that the move request sent has been acknowledged by the server
+            // therefore update the grid and turn
             if (status === "accept") {
                let g = grid;
                g[data.x][data.y] = data.value;
@@ -54,7 +55,7 @@ function Play(props) {
                if (data.winner !== "?") {
                   setFlag(1);
 
-                  // if the winner is =, then it is a tie
+                  // if the winner value is =, then it is a tie
                   if (data.winner === "=") {
                      setMessage("It is tie!")
                      document.getElementById("matchResult").showModal();
