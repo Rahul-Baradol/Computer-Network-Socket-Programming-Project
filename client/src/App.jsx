@@ -7,6 +7,7 @@ import Wait from "./components/Wait";
 import Play from "./components/Play";
 
 function App() {
+  // state variables
   const [player, setPlayer] = useState("");
   const [otherPlayer, setOtherPlayer] = useState("");
   const [roomId, setRoomId] = useState("");
@@ -23,10 +24,12 @@ function App() {
   // add event listeners to the web socket
   useEffect(() => {
     if (socket) {
+      // when a new web socket connection is established
       socket.addEventListener("open", () => {
         console.log("Web Socket connected!");
       })
 
+      // when the web socket connection closes
       socket.addEventListener("close", () => {
         console.log("Web Socket disconnected!");
       })
@@ -40,15 +43,21 @@ function App() {
 
         <BrowserRouter>
           <Routes>
+            {/* Route to the player component on / path */}
             <Route path="/" element={<Player player={player} setPlayer={setPlayer} />} />
+
+            {/* Route to the room component on /room path */}
             <Route path="/room" element={<Room setIdentity={setIdentity} setOtherPlayer={setOtherPlayer} socket={socket} player={player} roomId={roomId} setRoomId={setRoomId} />} />
+
+            {/* Route to the play component on /play path */}
             <Route path="/play" element={<Play roomId={roomId} socket={socket} identity={identity} player={player} otherPlayer={otherPlayer} />} />
+
+            {/* Route to the wait component on /wait path */}
             <Route path="/wait" element={<Wait setIdentity={setIdentity} socket={socket} setOtherPlayer={setOtherPlayer} roomId={roomId} />} />
           </Routes>
         </BrowserRouter>
 
       </div>
-      <div />
     </>
   )
 }

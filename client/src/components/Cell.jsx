@@ -1,6 +1,7 @@
 import React from 'react'
 
 function Cell(props) {
+   // function to modify border of the cell based on x and y coordinates of the cell
    function border(x, y) {
       let classes = "";
 
@@ -26,6 +27,7 @@ function Cell(props) {
    return (
       <>
          <div onClick={() => {
+            // if the flag is 0, send a message to the server to make a move 
             if (props.flag === 0) {
                props.socket.send(JSON.stringify({
                   type: "move",

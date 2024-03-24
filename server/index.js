@@ -8,16 +8,20 @@ const app = express();
 const expressWsInstance = expressWs(app);
 const wss = new ws.Server({ server: expressWsInstance.app });
 
+// enable cors for all requests
 app.use(cors());
 
+// array to store the roomIds
 let rooms = []
 
+// maps to store the room details
 let roomGrid = new Map();
 let roomId_Names = new Map();
 let roomId_WS = new Map();
 let roomId_Turn = new Map();
 
 // function to determine if the player is X or O
+// returns 1 for X and 0 for O
 function XorO() {
    const randomNumber = Math.random();
    return randomNumber < 0.5 ? 1 : 0;
@@ -25,16 +29,19 @@ function XorO() {
 
 // function to determine the winner of the game of tic tac toe
 function determineWinner(grid) {
+   // check the diagonals
    if (grid[0][0] !== null && grid[0][0] === grid[1][1] && grid[1][1] === grid[2][2]) {
       return grid[0][0];
    }
-
+   
+   // check the diagonals
    if (grid[0][2] !== null && grid[0][2] === grid[1][1] && grid[1][1] === grid[2][0]) {
       return grid[0][2];
    }
 
    let nullExists = false;
    for (let i = 0; i <= 2; i++) {
+      // check the rows and columns
       if (grid[i][0] !== null && grid[i][0] === grid[i][1] && grid[i][1] === grid[i][2]) {
          return grid[i][0];
       }
@@ -81,6 +88,7 @@ function join(ws, playerName, roomId) {
    let arr = roomId_Names.get(roomId);
 
    // more than 2 players cannot join the same room
+   // so send the message to the client that the room is full
    if (arr.length >= 2) {
       ws.send(JSON.stringify({
          type: "join",
@@ -108,7 +116,7 @@ function join(ws, playerName, roomId) {
    tmparr.push(ws);
    roomId_WS.set(roomId, tmparr);
 
-   // send the join acknowledgement to the current player
+   // send the added message to the current player
    ws.send(JSON.stringify({
       type: "join",
       status: "added",
@@ -120,10 +128,12 @@ function join(ws, playerName, roomId) {
 
 // when a client sends a create room message
 function create(ws, playerName) {
+   // function to generate a random 5 digit number
    function random5Digit() {
       return Math.floor(Math.random() * 100000).toString().padStart(5, '0');
    }
 
+   // generate a random 5 digit number which is not already in the rooms array
    let roomId;
    do {
       roomId = random5Digit();
@@ -142,6 +152,7 @@ function create(ws, playerName) {
 
    roomId_WS.set(roomId, tmparr);
 
+   // send the create acknowledgement to the current player with the roomId
    ws.send(JSON.stringify({
       type: "create",
       roomId: roomId
@@ -159,6 +170,7 @@ function move(ws, data) {
    console.log(roomId);
    console.log(currentTurn, whoyouare);
    if (currentTurn !== whoyouare) {
+      // if it is not the turn of the player, send a message to the client that the move is rejected
       ws.send(JSON.stringify({
          type: "move",
          status: "rejected"
@@ -169,6 +181,7 @@ function move(ws, data) {
    let grid = roomGrid[roomId];
    console.log(grid);
    if (grid[x][y] !== null) {
+      // if the cell is already occupied, send a message to the client that the move is rejected
       ws.send(JSON.stringify({
          type: "move",
          status: "rejected"
@@ -183,6 +196,7 @@ function move(ws, data) {
    let roomWS = roomId_WS.get(roomId);
 
    for (let ws of roomWS) {
+      // send the move details to the other player
       ws.send(JSON.stringify({
          type: "move",
          status: "accept",
@@ -199,6 +213,7 @@ function exitRoom(roomId) {
    let clients = roomId_WS.get(roomId);
    for (let client of clients) {
       if (client.readyState === ws.OPEN) {
+         // send the exit message to the client
          client.send(JSON.stringify({
             type: "exit"
          }))
@@ -213,11 +228,12 @@ function exitRoom(roomId) {
 
    let index = rooms.indexOf(roomId);
    if (index !== -1) {
+      // remove the roomId from the rooms array
       rooms.splice(index, 1);
    }
 }
 
-// websocket listening on / path
+// websocket listening on path /
 app.ws('/', (ws, req) => {
    console.log('Client connected to WebSocket :)');
 
@@ -226,7 +242,7 @@ app.ws('/', (ws, req) => {
       // Parse the message
       let data = JSON.parse(message);
 
-      // for all existing rooms, check if the players are still connected and if one player is disconnected, kick the other player out of the room
+      // for all existing rooms, check if the players are still connected and if one player of a room is disconnected, kick the other player out of the same room
       if (data.type === "alive") {
          checkClientStatus(data.roomId);
          return;
@@ -266,6 +282,8 @@ app.ws('/', (ws, req) => {
 // Start the server
 app.listen(3000, () => {
    console.log('Server listening on port 3000');
+
+   // check the connection status of the clients of all rooms every second 
    setInterval(() => {
       for (let room of rooms) {
          checkClientStatus(room)
